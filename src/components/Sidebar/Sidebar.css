@@ -1,0 +1,97 @@
+/* src/components/Sidebar/Sidebar.css */
+
+.sidebar {
+  grid-area: sidebar; /* Para o nosso layout de grid */
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a; /* Um preto suave */
+  color: var(--cor-branco);
+  padding: 24px 0;
+  height: 100vh;
+}
+
+.sidebar-header {
+  padding: 0 24px;
+  margin-bottom: 32px;
+}
+
+.sidebar-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--cor-vinho);
+  text-align: center;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Empurra o footer para baixo */
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  color: #a0a0a0; /* Cinza claro para links inativos */
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-link:hover {
+  background-color: #2a2a2a;
+  color: var(--cor-branco);
+}
+
+/* Estilo especial para o link da página ativa */
+.nav-link.active {
+  background-color: var(--cor-vinho);
+  color: var(--cor-branco);
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 0 24px;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 0;
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.logout-button:hover {
+  color: var(--cor-branco);
+}/* src/components/Sidebar/Sidebar.css */
+
+/* ... estilos existentes ... */
+
+
+/* --- Media Queries para Responsividade --- */
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%); /* Começa escondido */
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    border-right: 1px solid #333;
+  }
+
+  /* Classe para mostrar o sidebar */
+  .sidebar.active {
+    transform: translateX(0);
+  }
+}

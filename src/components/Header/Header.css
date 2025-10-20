@@ -1,0 +1,137 @@
+/* src/components/Header/Header.css */
+.app-header {
+  grid-area: header;
+  background-color: var(--cor-branco);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.header-right-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* --- Barra de Pesquisa --- */
+.search-bar-container {
+  position: relative;
+  width: 350px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px 10px 40px; /* Espaço para o ícone */
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background-color: #f4f6f8;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  background-color: var(--cor-branco);
+  border-color: var(--cor-vinho);
+  box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #777;
+}
+
+/* --- Ações e Menus Dropdown --- */
+.header-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.notification-bell, .user-menu {
+  position: relative;
+  cursor: pointer;
+  color: #555;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background-color: #d32f2f;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+/* Estilos genéricos para os dropdowns */
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 280px;
+  background-color: var(--cor-branco);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+.dropdown-header h3 { margin: 0; font-size: 1rem; }
+.dropdown-header p { margin: 4px 0 0; font-size: 0.8rem; color: #777; }
+
+.dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+}
+.dropdown-item:hover {
+  background-color: #f4f6f8;
+}
+.dropdown-item button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
