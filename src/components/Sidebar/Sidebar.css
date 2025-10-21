@@ -1,10 +1,11 @@
 /* src/components/Sidebar/Sidebar.css */
 
 .sidebar {
-  grid-area: sidebar; /* Para o nosso layout de grid */
+  grid-area: sidebar;
+  /* Para o nosso layout de grid */
   display: flex;
   flex-direction: column;
-  background-color: #1a1a1a; /* Um preto suave */
+  background-color: var(--sidebar-bg-color, #1a1a1a);
   color: var(--cor-branco);
   padding: 24px 0;
   height: 100vh;
@@ -18,14 +19,15 @@
 .sidebar-title {
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--cor-vinho);
+  color: var(--sidebar-title-color, #800000);
   text-align: center;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Empurra o footer para baixo */
+  flex-grow: 1;
+  /* Empurra o footer para baixo */
 }
 
 .nav-link {
@@ -33,7 +35,7 @@
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  color: #a0a0a0; /* Cinza claro para links inativos */
+  color: var(--sidebar-font-color, #a0a0a0);
   font-weight: 500;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -62,7 +64,7 @@
   padding: 16px 0;
   background: none;
   border: none;
-  color: #a0a0a0;
+  color: var(--sidebar-font-color, #a0a0a0);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -72,7 +74,9 @@
 
 .logout-button:hover {
   color: var(--cor-branco);
-}/* src/components/Sidebar/Sidebar.css */
+}
+
+/* src/components/Sidebar/Sidebar.css */
 
 /* ... estilos existentes ... */
 
@@ -84,7 +88,8 @@
     top: 0;
     left: 0;
     height: 100%;
-    transform: translateX(-100%); /* Começa escondido */
+    transform: translateX(-100%);
+    /* Começa escondido */
     transition: transform 0.3s ease;
     z-index: 1000;
     border-right: 1px solid #333;

@@ -1,19 +1,20 @@
-/* src/components/Header/Header.css */
+/* --- Estrutura Principal e Responsiva --- */
 .app-header {
   grid-area: header;
   background-color: var(--cor-branco);
   border-bottom: 1px solid #e0e0e0;
-  padding: 0 40px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
+  height: 70px;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 100%;
   width: 100%;
+  gap: 16px;
 }
 
 .page-title {
@@ -21,29 +22,35 @@
   font-weight: 600;
   color: #333;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-center {
+  display: none; /* Oculto em ecrãs pequenos por padrão */
 }
 
 .header-right-section {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  gap: 24px;
 }
 
 /* --- Barra de Pesquisa --- */
 .search-bar-container {
   position: relative;
-  width: 350px;
+  width: 100%;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 16px 10px 40px; /* Espaço para o ícone */
+  padding: 10px 16px 10px 40px;
   border-radius: 20px;
   border: 1px solid #ddd;
   background-color: #f4f6f8;
   transition: all 0.2s ease;
 }
-
 .search-input:focus {
   outline: none;
   background-color: var(--cor-branco);
@@ -59,9 +66,24 @@
   color: #777;
 }
 
+/* --- Botão Modo de Atendimento --- */
+.attendance-mode-button {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background-color: var(--cor-vinho);
+  color: var(--cor-branco);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter 0.2s;
+}
+.attendance-mode-button:hover {
+  filter: brightness(90%);
+}
+
 /* --- Ações e Menus Dropdown --- */
 .header-actions {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 24px;
@@ -71,6 +93,24 @@
   position: relative;
   cursor: pointer;
   color: #555;
+  display: flex;
+  align-items: center;
+}
+.user-menu { gap: 8px; }
+
+/* Foto do Utilizador */
+.user-avatar, .default-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.default-avatar {
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
 }
 
 .notification-badge {
@@ -88,50 +128,76 @@
   font-size: 0.75rem;
 }
 
-/* Estilos genéricos para os dropdowns */
+/* Menus Dropdown */
 .dropdown-menu {
   position: absolute;
-  top: 50px;
+  top: 60px;
   right: 0;
-  width: 280px;
   background-color: var(--cor-branco);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   z-index: 100;
   overflow: hidden;
 }
-
-.dropdown-header {
-  padding: 16px;
-  border-bottom: 1px solid #eee;
-}
+.notifications-dropdown { width: 350px; }
+.user-dropdown { width: 240px; }
+.dropdown-header { padding: 16px; border-bottom: 1px solid #eee; }
 .dropdown-header h3 { margin: 0; font-size: 1rem; }
 .dropdown-header p { margin: 4px 0 0; font-size: 0.8rem; color: #777; }
+.dropdown-list { list-style: none; margin: 0; padding: 8px 0; }
+.dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; font-size: 0.9rem; color: #333; cursor: pointer; text-decoration: none; }
+.dropdown-item:hover { background-color: #f4f6f8; }
 
-.dropdown-list {
-  list-style: none;
-  margin: 0;
-  padding: 8px 0;
+/* Notificações */
+.notifications-list { max-height: 400px; overflow-y: auto; }
+.notification-item { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.notification-item.unread { background-color: #f4f6f8; font-weight: 600; }
+.notification-message { font-size: 0.9rem; margin: 0; }
+.notification-time { font-size: 0.8rem; color: #777; flex-shrink: 0; margin-left: 16px; }
+.no-notifications { padding: 24px; text-align: center; color: #777; }
+
+
+/* --- Media Queries para Responsividade --- */
+
+/* Tablets e ecrãs médios */
+@media (min-width: 768px) {
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+  }
+  .page-title {
+    display: none; /* Esconde o título para dar espaço à pesquisa */
+  }
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-grow: 1;
+    justify-content: center;
+    margin: 0 24px;
+  }
+  .search-bar-container {
+    max-width: 400px;
+  }
+  .attendance-mode-button {
+    display: none; /* Ainda oculto em tablets */
+  }
 }
 
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  font-size: 0.9rem;
-  color: #333;
-  cursor: pointer;
+/* Desktops e ecrãs grandes */
+@media (min-width: 1200px) {
+  .header-content {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr; /* Esquerda | Centro | Direita */
+  }
+  .page-title {
+    display: block; /* Reexibe o título */
+  }
+  .search-bar-container {
+    max-width: 550px;
+  }
+  .attendance-mode-button {
+    display: block; /* Reexibe o botão */
+  }
 }
-.dropdown-item:hover {
-  background-color: #f4f6f8;
-}
-.dropdown-item button {
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-}
+

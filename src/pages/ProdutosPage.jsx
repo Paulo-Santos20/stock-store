@@ -5,7 +5,7 @@ import { db } from '../firebase/config';
 import { FiEdit, FiTrash2, FiPlusCircle } from 'react-icons/fi';
 import './EstoquePage.css'; // CSS específico para esta página
 
-const EstoquePage = () => {
+const ProdutosPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,5 +119,4 @@ const EstoquePage = () => {
   );
 };
 
-export default EstoquePage;
-
+export default ProdutosPage;

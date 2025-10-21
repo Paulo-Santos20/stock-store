@@ -1,0 +1,88 @@
+/* Painel de Filtragem */
+.filter-panel {
+  background-color: var(--cor-branco);
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 24px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 12px 16px 12px 45px; /* Espaço para o ícone */
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  color: #777;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-buttons button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+.filter-buttons button.active {
+  background-color: var(--cor-vinho);
+  color: white;
+  border-color: var(--cor-vinho);
+}
+
+/* Badges de Status do Cliente */
+.client-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-novo { background-color: #e3f2fd; color: #1565c0; }
+.status-regular { background-color: #e8f5e9; color: #2e7d32; }
+.status-vip { background-color: #fff8e1; color: #f9a825; }
+.status-premium { background-color: #ede7f6; color: #4527a0; }
+
+.client-name-cell {
+  font-weight: 600;
+}
+
+/* Garante que os estilos da página de header e tabela sejam aplicados */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
