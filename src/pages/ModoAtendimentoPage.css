@@ -1,0 +1,227 @@
+/* --- Estrutura Geral --- */
+.atendimento-page {
+  background-color: #f4f6f8;
+  min-height: 100vh;
+  position: relative; /* Para o posicionamento do toast */
+}
+
+.atendimento-header {
+  background-color: var(--cor-vinho);
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  position: sticky; /* Mantém o header fixo no topo */
+  top: 0;
+  z-index: 10;
+}
+.atendimento-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: right; /* Alinha o título à direita se necessário */
+}
+
+.back-to-admin {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+.back-to-admin:hover { text-decoration: underline; }
+
+.atendimento-main {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.atendimento-main.single-column {
+  max-width: 800px; /* Para o formulário de cliente isolado */
+}
+
+/* --- Seleção de Cliente --- */
+.client-selection-section {
+  background-color: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 32px;
+  border: 1px solid #e0e0e0;
+}
+.client-search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.client-search-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.add-client-button-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--cor-vinho);
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: filter 0.2s;
+}
+.add-client-button-text:hover { filter: brightness(90%); }
+.client-search-container { position: relative; }
+.client-search-container input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+.client-suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0 0;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.client-suggestions-list li { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #eee; }
+.client-suggestions-list li:last-child { border-bottom: none; }
+.client-suggestions-list li:hover { background-color: #f0f0f0; }
+.client-suggestions-list li span { color: #777; font-size: 0.9rem; margin-left: 8px; }
+
+/* --- Grid Principal e Cards --- */
+.atendimento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.atendimento-column {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.atendimento-card {
+  background-color: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+.atendimento-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* --- Cartão de Detalhes do Cliente --- */
+.client-details-card .form-group { margin-bottom: 12px; }
+.client-details-card .form-group label { font-size: 0.8rem; margin-bottom: 4px; color: #555; }
+.client-details-card .form-group input { font-size: 1rem; padding: 10px; background-color: #f9f9f9; border-radius: 6px; border: 1px solid #ccc; width: 100%;}
+.toggle-details-button {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 16px 0;
+  color: #555;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.toggle-details-button:hover { background-color: #f0f0f0; }
+.client-extra-details {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #eee;
+}
+.client-extra-details h4 { font-size: 1rem; margin-bottom: 16px; color: #333; }
+.address-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.save-client-button {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+}
+
+/* --- Cartão de Nova Venda --- */
+.new-sale-card .data-table.condensed th,
+.new-sale-card .data-table.condensed td { padding: 8px; font-size: 0.9rem;}
+.payment-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee;}
+.payment-method-group select, .form-group textarea { width: 100%; padding: 10px; font-size: 1rem; border-radius: 6px; border: 1px solid #ccc; }
+.finalize-sale-button { margin-top: 24px; width: 100%; padding: 12px; }
+
+/* --- Cartão de Histórico --- */
+.client-history-card .overflow-x-auto { max-height: calc(100vh - 300px); min-height: 200px; }
+.client-history-card .data-table.condensed th,
+.client-history-card .data-table.condensed td { padding: 8px; font-size: 0.9rem;}
+
+/* --- Elementos Reutilizados (Herança/Garantia) --- */
+.form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+.form-button { padding: 12px 24px; font-size: 1rem; font-weight: 600; color: var(--cor-branco); background-color: var(--cor-vinho); border: none; border-radius: 6px; cursor: pointer; }
+.form-button:hover { filter: brightness(90%); }
+.overflow-x-auto { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+.data-table th { background-color: #f9f9f9; font-weight: 600; }
+.quantity-input { width: 70px; padding: 8px !important; text-align: center; border: 1px solid #ccc; border-radius: 6px;}
+.remove-item-btn { background: none; border: none; color: #c62828; cursor: pointer; padding: 4px; }
+.total-value-section { display: flex; justify-content: flex-end; align-items: center; margin-top: 24px; font-size: 1.2rem; }
+.total-value-section strong { margin-right: 16px; }
+.total-value-section span { font-size: 1.5rem; font-weight: bold; color: var(--cor-vinho); }
+.product-search-container { position: relative; }
+.product-suggestions-list { list-style: none; padding: 0; margin: 4px 0 0 0; position: absolute; background-color: white; border: 1px solid #ddd; border-radius: 6px; width: 100%; max-height: 200px; overflow-y: auto; z-index: 10; }
+.product-suggestions-list li { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #eee;}
+.product-suggestions-list li:hover { background-color: #f0f0f0; }
+
+.loading-fullscreen { height: 100vh; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
+
+/* --- Toast --- */
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 16px 24px; border-radius: 8px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; animation: toastFadeInOut 3s ease-in-out forwards; }
+.toast-success { background-color: #4CAF50; color: white; }
+.toast button { background: none; border: none; color: white; font-size: 1.2rem; margin-left: 16px; cursor: pointer; }
+@keyframes toastFadeInOut { 0% { opacity: 0; bottom: 0px; } 10% { opacity: 1; bottom: 30px; } 90% { opacity: 1; bottom: 30px; } 100% { opacity: 0; bottom: 0px; } }
+
+/* --- Media Queries para Responsividade --- */
+@media (max-width: 1024px) {
+  .atendimento-grid { grid-template-columns: 1fr; }
+  .client-history-card .overflow-x-auto { max-height: 300px; }
+}
+@media (max-width: 768px) {
+  .atendimento-header { padding: 12px 16px; }
+  .atendimento-header h1 { font-size: 1.1rem; }
+  .atendimento-main { padding: 16px; }
+  .atendimento-grid { gap: 16px; }
+  .atendimento-card { padding: 16px; }
+  .address-grid { grid-template-columns: 1fr; } /* Empilha endereço em ecrãs pequenos */
+  .client-selection-section { padding: 16px; }
+  .add-client-button-text span { display: none; } /* Esconde o texto do botão em telemóveis */
+  .add-client-button-text { padding: 8px; }
+}

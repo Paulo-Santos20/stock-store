@@ -3,12 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, addDoc, updateDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
+import { useAuth } from '../context/AuthContext'; // Importe o hook de autenticação
 import './FormPages.css';
 import { FiUploadCloud } from 'react-icons/fi';
 
 const ProdutoFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentUserData } = useAuth(); // Pega os dados do utilizador logado
   const isEditing = Boolean(id);
 
   const [product, setProduct] = useState({
@@ -26,10 +28,31 @@ const ProdutoFormPage = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasPermission, setHasPermission] = useState(false); // Estado para controlar permissão
+
+  // Verifica a permissão de acesso à página
+  useEffect(() => {
+    // Verifica se o utilizador tem uma das roles permitidas para Staff.
+    const canAccess = currentUserData?.role === 'administrador' || 
+                      currentUserData?.role === 'gerente' || 
+                      currentUserData?.role === 'operador';
+    
+    if (!canAccess && currentUserData) { // Adiciona verificação currentUserData para evitar alerta inicial
+      alert("Você não tem permissão para aceder a esta página.");
+      navigate('/'); // Redireciona para o Dashboard
+    } else if (canAccess) {
+        setHasPermission(true); // Permite a renderização do formulário
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserData, navigate]); // Depende de currentUserData
 
   // Busca dados para os dropdowns e para o produto (se estiver editando)
   useEffect(() => {
+    // Só executa se o utilizador tiver permissão
+    if (!hasPermission) return;
+
     const fetchData = async () => {
+      setLoading(true); // Garante que o loading seja reativado se houver permissão
       try {
         const [categoriesSnap, suppliersSnap, locationsSnap] = await Promise.all([
           getDocs(collection(db, 'categories')),
@@ -48,7 +71,7 @@ const ProdutoFormPage = () => {
             setProduct({ ...productData, id: docSnap.id });
             setImagePreview(productData.imageUrl);
           } else {
-            navigate('/estoque');
+            navigate('/produtos'); // Corrigido para /produtos
           }
         }
       } catch (error) {
@@ -58,7 +81,7 @@ const ProdutoFormPage = () => {
       }
     };
     fetchData();
-  }, [id, isEditing, navigate]);
+  }, [id, isEditing, navigate, hasPermission]); // Adiciona hasPermission como dependência
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -79,6 +102,7 @@ const ProdutoFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!hasPermission) return; // Segurança extra
     setIsSubmitting(true);
     let productData = { ...product, updatedAt: serverTimestamp() };
 
@@ -102,7 +126,7 @@ const ProdutoFormPage = () => {
         productData.createdAt = serverTimestamp();
         await addDoc(collection(db, 'products'), productData);
       }
-      navigate('/estoque');
+      navigate('/produtos'); // Corrigido para /produtos
     } catch (error) {
       console.error("Erro ao salvar produto:", error);
       alert('Falha ao salvar o produto.');
@@ -110,8 +134,10 @@ const ProdutoFormPage = () => {
     }
   };
 
-  if (loading) return <p>Carregando formulário...</p>;
+  // Se ainda está a verificar permissão ou a carregar dados, mostra mensagem
+  if (!hasPermission || loading) return <p>A verificar permissão e carregar dados...</p>;
 
+  // Renderiza o formulário apenas se tiver permissão e os dados estiverem carregados
   return (
     <>
       <form className="form-container large" onSubmit={handleSubmit}>
@@ -166,7 +192,7 @@ const ProdutoFormPage = () => {
                     {imagePreview ? <img src={imagePreview} alt="Preview"/> : <div><FiUploadCloud size={30}/><p>Arraste e solte ou clique para enviar</p></div>}
                 </label>
                 <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} />
-                {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
+                {uploadProgress > 0 && uploadProgress < 100 && <progress value={uploadProgress} max="100" />}
             </div>
         </div>
         
@@ -176,7 +202,7 @@ const ProdutoFormPage = () => {
         </div>
 
         <div className="form-actions">
-          <button type="button" className="form-button secondary" onClick={() => navigate('/estoque')}>Cancelar</button>
+          <button type="button" className="form-button secondary" onClick={() => navigate('/produtos')}>Cancelar</button>
           <button type="submit" className="form-button" disabled={isSubmitting}>
             {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Cadastrar Produto')}
           </button>
@@ -187,3 +213,4 @@ const ProdutoFormPage = () => {
 };
 
 export default ProdutoFormPage;
+

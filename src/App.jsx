@@ -20,7 +20,12 @@ import VendaFormPage from './pages/VendaFormPage';
 import VendaDetalhesPage from './pages/VendaDetalhesPage';
 import OrcamentosPage from './pages/OrcamentosPage';
 import OrcamentoFormPage from './pages/OrcamentoFormPage';
-import AlertasPage from './pages/AlertasPage'; // Importe a nova página
+import AlertasPage from './pages/AlertasPage';
+import UsuariosPage from './pages/UsuariosPage';
+import UsuarioFormPage from './pages/UsuarioFormPage';
+import ModoAtendimentoPage from './pages/ModoAtendimentoPage';
+import AtendimentoClienteFormPage from './pages/AtendimentoClienteFormPage';
+import RelatoriosPage from './pages/RelatoriosPage'; // Importe a página de Relatórios
 
 // Páginas de Usuário e Configurações
 import PerfilPage from './pages/PerfilPage';
@@ -34,6 +39,13 @@ function App() {
     <Routes>
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
 
+      {/* Rotas do Modo de Atendimento fora do Layout principal */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/atendimento" element={<ModoAtendimentoPage />} />
+        <Route path="/atendimento/novo-cliente" element={<AtendimentoClienteFormPage />} />
+      </Route>
+
+      {/* Container para Rotas Protegidas que usam o Layout principal */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
@@ -50,7 +62,7 @@ function App() {
           <Route path="/clientes" element={<ClientesPage />} />
           <Route path="/clientes/novo" element={<ClienteFormPage />} />
           <Route path="/clientes/editar/:id" element={<ClienteFormPage />} />
-          
+
           <Route path="/vendas" element={<VendasPage />} />
           <Route path="/vendas/novo" element={<VendaFormPage />} />
           <Route path="/vendas/editar/:id" element={<VendaFormPage />} />
@@ -60,16 +72,21 @@ function App() {
           <Route path="/orcamentos/novo" element={<OrcamentoFormPage />} />
           <Route path="/orcamentos/editar/:id" element={<OrcamentoFormPage />} />
 
+          <Route path="/usuarios" element={<UsuariosPage />} />
+          <Route path="/usuarios/novo" element={<UsuarioFormPage />} />
+          <Route path="/usuarios/editar/:id" element={<UsuarioFormPage />} />
+
           <Route path="/perfil" element={<PerfilPage />} />
           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="/pesquisa" element={<PesquisaPage />} />
+          <Route path="/relatorios" element={<RelatoriosPage />} /> {/* Rota de Relatórios */}
         </Route>
       </Route>
 
+      {/* Rota "Catch-all" para redirecionar URLs inválidas */}
       <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
     </Routes>
   );
 }
 
 export default App;
-

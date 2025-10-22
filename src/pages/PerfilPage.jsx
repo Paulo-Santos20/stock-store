@@ -36,6 +36,7 @@ const logActivity = async (userId, action) => {
       timestamp: serverTimestamp(),
     });
   } catch (error) {
+    // Erro de registo de atividade mantido para depuração de produção
     console.error("Erro ao registrar atividade: ", error);
   }
 };
@@ -56,13 +57,12 @@ const PerfilPage = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // 🔥 Busca por e-mail ao invés de UID
+  // Busca dados do Firestore
   useEffect(() => {
     const fetchUserData = async () => {
       if (!currentUser) return;
 
       setLoadingProfile(true);
-      console.log("🔍 Buscando usuário por e-mail:", currentUser.email);
 
       const usersRef = collection(db, "users");
       const emailQuery = query(usersRef, where("email", "==", currentUser.email));
@@ -70,12 +70,9 @@ const PerfilPage = () => {
 
       let userDocSnap;
       if (!snapshot.empty) {
-        // Usuário encontrado — usa esse documento
         userDocSnap = snapshot.docs[0];
-        console.log("✅ Usuário encontrado no Firestore:", userDocSnap.id);
       } else {
         // Não existe — cria novo com dados do Firebase Auth
-        console.warn("❗ Usuário não encontrado. Criando novo documento...");
         const userDocRef = doc(db, "users", currentUser.uid);
         const newUserDoc = {
           name: currentUser.displayName || "Usuário sem nome",
@@ -90,7 +87,6 @@ const PerfilPage = () => {
       }
 
       const data = userDocSnap.data();
-      console.log("📄 Dados do Firestore:", data);
 
       setUserData(data);
       setDisplayName(data.name || currentUser.displayName || "");
@@ -101,7 +97,7 @@ const PerfilPage = () => {
     fetchUserData();
   }, [currentUser]);
 
-  // 🔥 Busca últimos logs (sem orderBy, sem precisar de índice)
+  // Busca últimos logs
   useEffect(() => {
     const fetchLogs = async () => {
       if (!currentUser) return;
@@ -114,7 +110,7 @@ const PerfilPage = () => {
         const logsSnapshot = await getDocs(logsQuery);
         setActivityLogs(logsSnapshot.docs.map((doc) => doc.data()));
       } catch (err) {
-        console.error("❌ Erro ao buscar logs:", err);
+        console.error("Erro ao buscar logs de atividade:", err);
       }
     };
     fetchLogs();

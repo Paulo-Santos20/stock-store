@@ -1,0 +1,50 @@
+.meus-pedidos-page {
+  background-color: #f4f6f8;
+  min-height: 100vh;
+}
+
+.meus-pedidos-header {
+  background-color: var(--cor-vinho);
+  color: white;
+  padding: 24px 32px;
+  text-align: center;
+}
+
+.meus-pedidos-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.meus-pedidos-main {
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loading-fullscreen {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+}
+
+/* Reutiliza estilos de tabelas e badges */
+.data-section {
+  background-color: var(--cor-branco);
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 24px;
+  overflow: hidden;
+}
+.overflow-x-auto { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { padding: 16px; text-align: left; border-bottom: 1px solid #eee; }
+.data-table th { font-weight: 600; background-color: #f9f9f9; }
+.order-status-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+.status-aguardando-pagamento { background-color: #fff8e1; color: #f9a825; }
+.status-solicitado { background-color: #e3f2fd; color: #1565c0; }
+.status-enviado { background-color: #ede7f6; color: #4527a0; }
+.status-concluído { background-color: #e8f5e9; color: #2e7d32; }
+.status-cancelado { background-color: #ffebee; color: #c62828; }

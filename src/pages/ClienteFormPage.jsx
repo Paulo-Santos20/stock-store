@@ -2,56 +2,86 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, addDoc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAuth } from '../context/AuthContext'; // Importe para verificar permissão
 import './FormPages.css'; // Reutilizando o CSS de formulários
 
 const ClienteFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentUserData } = useAuth(); // Pega os dados do utilizador logado
   const isEditing = Boolean(id);
 
   const [client, setClient] = useState({
     name: '',
     email: '',
     phone: '',
+    cpf: '',
     address: { rua: '', cidade: '', estado: '', cep: '' }, // Objeto para o endereço
     notes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(isEditing);
+  const [loading, setLoading] = useState(isEditing); // Só carrega se estiver editando
   const [isFetchingCep, setIsFetchingCep] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false); // Estado para controlar permissão
+
+  // Verifica a permissão de acesso à página
+  useEffect(() => {
+    // Apenas Admin, Gerente e Operador podem criar/editar clientes
+    const canAccess = currentUserData?.role === 'administrador' ||
+                      currentUserData?.role === 'gerente' ||
+                      currentUserData?.role === 'operador';
+
+    if (!canAccess && currentUserData) {
+      alert("Você não tem permissão para aceder a esta página.");
+      navigate('/'); // Redireciona para o Dashboard
+    } else if (canAccess) {
+        setHasPermission(true); // Permite a renderização
+        // Se não estiver editando, define loading como false imediatamente
+        if (!isEditing) setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserData, navigate]);
+
 
   useEffect(() => {
-    if (isEditing) {
-      const fetchClient = async () => {
-        try {
-          const docRef = doc(db, 'clients', id);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setClient({
-              name: data.name || '',
-              email: data.email || '',
-              phone: data.phone || '',
-              address: data.address || { rua: '', cidade: '', estado: '', cep: '' },
-              notes: data.notes || '',
-            });
-          } else {
-            navigate('/clientes');
-          }
-        } catch (error) {
-          console.error("Erro ao buscar cliente:", error);
-        } finally {
-          setLoading(false);
+    // Só busca dados se tiver permissão e estiver editando
+    if (!hasPermission || !isEditing) return;
+
+    const fetchClient = async () => {
+      setLoading(true);
+      try {
+        const docRef = doc(db, 'clients', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          // Garante que o estado tenha a mesma estrutura
+          const data = docSnap.data();
+          setClient({
+            id: docSnap.id, // Guarda o ID para edição
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            cpf: data.cpf || '',
+            address: data.address || { rua: '', cidade: '', estado: '', cep: '' },
+            notes: data.notes || '',
+            // Guarda outros campos como createdAt se precisar exibi-los
+            createdAt: data.createdAt || null
+          });
+        } else {
+          console.error("Cliente não encontrado!");
+          navigate('/clientes');
         }
-      };
-      fetchClient();
-    } else {
-      setLoading(false); // Garante que o loading termine se não estiver editando
-    }
-  }, [id, isEditing, navigate]);
+      } catch (error) {
+        console.error("Erro ao buscar cliente:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClient();
+  }, [id, isEditing, navigate, hasPermission]); // Adiciona hasPermission
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Lógica para atualizar o objeto de endereço aninhado
     if (name.startsWith('address.')) {
       const addressField = name.split('.')[1];
       setClient(prev => ({
@@ -80,14 +110,20 @@ const ClienteFormPage = () => {
           ...prev,
           address: {
             ...prev.address,
+            cep: cep, // Guarda o CEP formatado ou não, como preferir
             rua: data.logradouro,
             cidade: data.localidade,
             estado: data.uf,
           }
         }));
+      } else {
+         alert("CEP não encontrado.");
+         // Opcional: Limpar campos de endereço se CEP for inválido
+         setClient(prev => ({ ...prev, address: { ...prev.address, rua: '', cidade: '', estado: '' } }));
       }
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
+       alert("Falha ao buscar CEP. Tente novamente.");
     } finally {
       setIsFetchingCep(false);
     }
@@ -95,17 +131,22 @@ const ClienteFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!hasPermission) return; // Segurança extra
     setIsSubmitting(true);
-    
-    const clientData = { ...client, updatedAt: serverTimestamp() };
+
+    // Remove o ID do objeto antes de salvar para evitar conflito
+    const { id: clientId, ...clientDataToSave } = client;
+    clientDataToSave.updatedAt = serverTimestamp();
 
     try {
       if (isEditing) {
         const docRef = doc(db, 'clients', id);
-        await updateDoc(docRef, clientData);
+        await updateDoc(docRef, clientDataToSave);
       } else {
-        clientData.createdAt = serverTimestamp();
-        await addDoc(collection(db, 'clients'), clientData);
+        clientDataToSave.createdAt = serverTimestamp();
+        // Adicione aqui outros campos padrão para novos clientes se necessário
+        // ex: clientDataToSave.status = 'Novo';
+        await addDoc(collection(db, 'clients'), clientDataToSave);
       }
       navigate('/clientes');
     } catch (error) {
@@ -116,8 +157,10 @@ const ClienteFormPage = () => {
     }
   };
 
-  if (loading) return <p>A carregar cliente...</p>;
+  // Se ainda está a verificar permissão ou a carregar dados
+  if (!hasPermission || loading) return <p>A verificar permissão e carregar dados...</p>;
 
+  // Renderiza o formulário
   return (
     <>
       <form className="form-container large" onSubmit={handleSubmit}>
@@ -127,6 +170,7 @@ const ClienteFormPage = () => {
             <div className="form-group span-2"><label htmlFor="name">Nome Completo</label><input type="text" id="name" name="name" value={client.name} onChange={handleChange} required /></div>
             <div className="form-group"><label htmlFor="email">Email</label><input type="email" id="email" name="email" value={client.email} onChange={handleChange} required /></div>
             <div className="form-group"><label htmlFor="phone">Telefone</label><input type="text" id="phone" name="phone" value={client.phone} onChange={handleChange} /></div>
+            <div className="form-group"><label htmlFor="cpf">CPF</label><input type="text" id="cpf" name="cpf" value={client.cpf} onChange={handleChange} /></div>
           </div>
         </div>
 
@@ -163,3 +207,4 @@ const ClienteFormPage = () => {
 };
 
 export default ClienteFormPage;
+

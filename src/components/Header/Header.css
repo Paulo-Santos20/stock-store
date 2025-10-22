@@ -76,6 +76,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  text-decoration: none; /* Adicionado para o Link */
   transition: filter 0.2s;
 }
 .attendance-mode-button:hover {
@@ -131,7 +132,7 @@
 /* Menus Dropdown */
 .dropdown-menu {
   position: absolute;
-  top: 60px;
+  top: 60px; /* Mais espaço para não colar no header */
   right: 0;
   background-color: var(--cor-branco);
   border-radius: 8px;
@@ -150,9 +151,9 @@
 
 /* Notificações */
 .notifications-list { max-height: 400px; overflow-y: auto; }
-.notification-item { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.notification-item { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: #333; }
 .notification-item.unread { background-color: #f4f6f8; font-weight: 600; }
-.notification-message { font-size: 0.9rem; margin: 0; }
+.notification-message { font-size: 0.9rem; margin: 0; white-space: normal; }
 .notification-time { font-size: 0.8rem; color: #777; flex-shrink: 0; margin-left: 16px; }
 .no-notifications { padding: 24px; text-align: center; color: #777; }
 
@@ -177,7 +178,7 @@
     margin: 0 24px;
   }
   .search-bar-container {
-    max-width: 400px;
+    max-width: 450px;
   }
   .attendance-mode-button {
     display: none; /* Ainda oculto em tablets */
@@ -194,10 +195,9 @@
     display: block; /* Reexibe o título */
   }
   .search-bar-container {
-    max-width: 550px;
+    max-width: 650px;
   }
   .attendance-mode-button {
     display: block; /* Reexibe o botão */
   }
 }
-

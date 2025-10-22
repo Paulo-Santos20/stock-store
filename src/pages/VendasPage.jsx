@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FiPlusCircle, FiSearch, FiEye, FiEdit } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext'; // 1. Importe o hook de autenticação
+import { FiPlusCircle, FiSearch, FiEye, FiCheckCircle } from 'react-icons/fi'; // Importe FiCheckCircle
 import './VendasPage.css';
 
 // Componente para o 'badge' de status do pedido
@@ -17,11 +18,24 @@ const formatTimestamp = (timestamp) => {
     return timestamp.toDate().toLocaleDateString('pt-BR');
 };
 
+// NOVO: Componente Toast
+const Toast = ({ message, type = 'success', onClose }) => (
+  <div className={`toast toast-${type}`}>
+    <FiCheckCircle size={20} />
+    <span>{message}</span>
+    <button onClick={onClose}>&times;</button>
+  </div>
+);
+
 const VendasPage = () => {
+  const { currentUserData } = useAuth(); // 2. Pega os dados do utilizador logado
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('todos');
+  const [toastMessage, setToastMessage] = useState(''); // NOVO: Estado para o toast
+
+  const isAdmin = currentUserData?.role === 'administrador'; // 3. Verifica se é Admin
 
   // Busca os pedidos do Firestore
   useEffect(() => {
@@ -47,6 +61,9 @@ const VendasPage = () => {
       setOrders(orders.map(order => 
         order.id === orderId ? { ...order, status: newStatus } : order
       ));
+      // NOVO: Ativa o toast
+      setToastMessage('Status alterado com sucesso!');
+      setTimeout(() => setToastMessage(''), 3000); // Esconde após 3 segundos
     } catch (error) {
       console.error("Erro ao alterar status:", error);
       alert("Não foi possível alterar o status do pedido.");
@@ -68,8 +85,20 @@ const VendasPage = () => {
 
   if (loading) return <p>A carregar vendas...</p>;
 
+  // Lista de status para os filtros e o <select>
+  const statusOptions = [
+    { value: 'aguardando-pagamento', label: 'Aguardando Pagamento' },
+    { value: 'solicitado', label: 'Solicitado' },
+    { value: 'enviado', label: 'Enviado' },
+    { value: 'concluído', label: 'Concluído' },
+    { value: 'cancelado', label: 'Cancelado' }
+  ];
+
   return (
     <>
+      {/* NOVO: Renderiza o toast se a mensagem existir */}
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage('')} />}
+
       <div className="page-header">
         <h2 className="dashboard-title">Vendas</h2>
         <Link to="/vendas/novo" className="action-button">
@@ -78,6 +107,7 @@ const VendasPage = () => {
         </Link>
       </div>
 
+      {/* Painel de Filtragem */}
       <div className="filter-panel">
         <div className="search-container">
           <FiSearch className="search-icon" />
@@ -90,14 +120,19 @@ const VendasPage = () => {
         </div>
         <div className="filter-buttons">
           <button onClick={() => setActiveFilter('todos')} className={activeFilter === 'todos' ? 'active' : ''}>Todos</button>
-          <button onClick={() => setActiveFilter('aguardando-pagamento')} className={activeFilter === 'aguardando-pagamento' ? 'active' : ''}>Aguardando Pagamento</button>
-          <button onClick={() => setActiveFilter('solicitado')} className={activeFilter === 'solicitado' ? 'active' : ''}>Solicitados</button>
-          <button onClick={() => setActiveFilter('enviado')} className={activeFilter === 'enviado' ? 'active' : ''}>Enviados</button>
-          <button onClick={() => setActiveFilter('concluído')} className={activeFilter === 'concluído' ? 'active' : ''}>Concluídos</button>
-          <button onClick={() => setActiveFilter('cancelado')} className={activeFilter === 'cancelado' ? 'active' : ''}>Cancelados</button>
+          {statusOptions.map(opt => (
+             <button 
+                key={opt.value}
+                onClick={() => setActiveFilter(opt.value)} 
+                className={activeFilter === opt.value ? 'active' : ''}
+             >
+               {opt.label}s
+             </button>
+          ))}
         </div>
       </div>
 
+      {/* Listagem de Vendas */}
       <div className="data-section">
         <div className="overflow-x-auto">
           <table className="data-table">
@@ -112,23 +147,40 @@ const VendasPage = () => {
             </thead>
             <tbody>
               {filteredOrders.length > 0 ? (
-                filteredOrders.map(order => (
-                  <tr key={order.id}>
-                    <td className="order-customer-cell">{order.customerName}</td>
-                    <td>{formatTimestamp(order.date)}</td>
-                    <td>{(order.totalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-                    <td><OrderStatusBadge status={order.status} /></td>
-                    <td className="actions-cell">
-                      {/* CORREÇÃO: Link para a página de detalhes da venda */}
-                      <Link to={`/vendas/detalhes/${order.id}`}>
-                        <button title="Ver Detalhes"><FiEye size={18} /></button>
-                      </Link>
-                      <Link to={`/vendas/editar/${order.id}`}>
-                        <button title="Editar Status"><FiEdit size={18} /></button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                filteredOrders.map(order => {
+                  // 4. Lógica de permissão de edição
+                  const isFinalStatus = order.status === 'Concluído' || order.status === 'Cancelado';
+                  const canEditStatus = isAdmin || !isFinalStatus; // Admin pode sempre editar
+
+                  return (
+                    <tr key={order.id}>
+                      <td className="order-customer-cell">{order.customerName}</td>
+                      <td>{formatTimestamp(order.date)}</td>
+                      <td>{(order.totalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                      <td>
+                        {/* 5. Aplica a nova lógica de permissão */}
+                        {canEditStatus ? (
+                          <select 
+                            className="status-select" 
+                            value={order.status}
+                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          >
+                            {statusOptions.map(opt => (
+                              <option key={opt.value} value={opt.label}>{opt.label}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <OrderStatusBadge status={order.status} />
+                        )}
+                      </td>
+                      <td className="actions-cell">
+                        <Link to={`/vendas/detalhes/${order.id}`}>
+                          <button title="Ver Detalhes"><FiEye size={18} /></button>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
@@ -145,4 +197,3 @@ const VendasPage = () => {
 };
 
 export default VendasPage;
-

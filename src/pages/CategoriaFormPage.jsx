@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, addDoc, updateDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAuth } from '../context/AuthContext'; // Importe o hook de autenticação
 import './FormPages.css';
 
 const formatTimestamp = (timestamp) => {
@@ -20,6 +21,7 @@ const generateSlug = (name) => {
 const CategoriaFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentUserData } = useAuth(); // Pega os dados do utilizador logado
   const isEditing = Boolean(id);
 
   const [category, setCategory] = useState({
@@ -31,35 +33,67 @@ const CategoriaFormPage = () => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(isEditing);
+  const [loading, setLoading] = useState(isEditing); // Só carrega se estiver editando
+  const [hasPermission, setHasPermission] = useState(false); // Estado para controlar permissão
+
+  // Verifica a permissão de acesso à página
+  useEffect(() => {
+    // Apenas Admin, Gerente e Operador podem criar/editar categorias
+    const canAccess = currentUserData?.role === 'administrador' || 
+                      currentUserData?.role === 'gerente' || 
+                      currentUserData?.role === 'operador';
+    
+    if (!canAccess && currentUserData) { // Evita alerta inicial
+      alert("Você não tem permissão para aceder a esta página.");
+      navigate('/'); // Redireciona para o Dashboard
+    } else if (canAccess) {
+        setHasPermission(true); // Permite a renderização
+        // Se não estiver editando, define loading como false imediatamente
+        if (!isEditing) setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserData, navigate]);
 
   // Efeito para gerar o slug automaticamente a partir do nome
   useEffect(() => {
+    // Só executa se tiver permissão
+    if (!hasPermission) return;
     setCategory(prev => ({ ...prev, slug: generateSlug(prev.name) }));
-  }, [category.name]);
+  }, [category.name, hasPermission]);
 
   // Efeito para buscar os dados da categoria ao editar
   useEffect(() => {
-    if (isEditing) {
-      const fetchCategory = async () => {
-        try {
-          const docRef = doc(db, 'categories', id);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setCategory({ id: docSnap.id, ...docSnap.data() });
-          } else {
-            console.error("Categoria não encontrada!");
-            navigate('/categorias');
-          }
-        } catch (error) {
-          console.error("Erro ao buscar categoria:", error);
-        } finally {
-          setLoading(false);
+    // Só executa se tiver permissão e estiver no modo de edição
+    if (!hasPermission || !isEditing) return;
+
+    const fetchCategory = async () => {
+      setLoading(true);
+      try {
+        const docRef = doc(db, 'categories', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          // Garante que o estado tenha todos os campos esperados
+          const data = docSnap.data();
+          setCategory({
+              id: docSnap.id,
+              name: data.name || '',
+              description: data.description || '',
+              slug: data.slug || generateSlug(data.name || ''),
+              isActive: data.isActive !== undefined ? data.isActive : true,
+              createdAt: data.createdAt || null,
+          });
+        } else {
+          console.error("Categoria não encontrada!");
+          navigate('/categorias');
         }
-      };
-      fetchCategory();
-    }
-  }, [id, isEditing, navigate]);
+      } catch (error) {
+        console.error("Erro ao buscar categoria:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategory();
+  }, [id, isEditing, navigate, hasPermission]); // Adiciona hasPermission
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,22 +102,21 @@ const CategoriaFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!hasPermission) return; // Segurança extra
     if (!category.name) {
       alert('O nome da categoria é obrigatório.');
       return;
     }
     setIsSubmitting(true);
     
-    // Prepara os dados para salvar, removendo o ID do objeto
-    const { id: categoryId, ...categoryData } = category;
+    // Prepara os dados para salvar
+    const { id: categoryId, isActive, createdAt, ...categoryData } = category; // Não salva isActive nem createdAt via formulário
     categoryData.updatedAt = serverTimestamp();
 
     try {
       if (isEditing) {
-        // No modo de edição, não alteramos o status 'isActive' nem o 'createdAt'
-        const { isActive, createdAt, ...updateData } = categoryData;
         const docRef = doc(db, 'categories', id);
-        await updateDoc(docRef, updateData);
+        await updateDoc(docRef, categoryData);
       } else {
         // No modo de criação, definimos o status inicial e a data de criação
         categoryData.createdAt = serverTimestamp();
@@ -99,8 +132,10 @@ const CategoriaFormPage = () => {
     }
   };
   
-  if (isEditing && loading) return <p>A carregar categoria...</p>;
+  // Se não tem permissão ou ainda está a carregar
+  if (!hasPermission || loading) return <p>A verificar permissão e carregar dados...</p>;
 
+  // Renderiza o formulário
   return (
     <>
       <form className="form-container" onSubmit={handleSubmit}>
@@ -114,7 +149,8 @@ const CategoriaFormPage = () => {
 
           <div className="form-group">
             <label htmlFor="slug">Slug (URL)</label>
-            <input type="text" id="slug" name="slug" value={category.slug} onChange={handleChange} readOnly disabled />
+            <input type="text" id="slug" name="slug" value={category.slug} readOnly disabled />
+            <small>Gerado automaticamente a partir do nome.</small>
           </div>
 
           <div className="form-group">

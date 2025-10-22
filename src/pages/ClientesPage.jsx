@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, doc, query, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useAuth } from '../context/AuthContext'; // Importe o hook de autenticação
 import { FiPlusCircle, FiSearch, FiEdit, FiTrash2 } from 'react-icons/fi';
 import './ClientesPage.css';
 
@@ -24,17 +25,23 @@ const determineClientStatus = (client, orderCount) => {
       return 'Novo';
     }
   }
-  
+
   return 'Regular';
 };
 
 
 const ClientesPage = () => {
+  const { currentUserData } = useAuth(); // Pega os dados do utilizador logado
   const [clients, setClients] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('todos');
+
+  // Define permissões com base na role
+  const canAdd = currentUserData?.role === 'administrador' || currentUserData?.role === 'gerente' || currentUserData?.role === 'operador';
+  const canEdit = canAdd; // Mesma permissão para editar
+  const canDelete = currentUserData?.role === 'administrador' || currentUserData?.role === 'gerente'; // Apenas Admin e Gerente podem excluir
 
   // Busca os clientes e pedidos do Firestore
   useEffect(() => {
@@ -61,6 +68,7 @@ const ClientesPage = () => {
   }, []);
 
   const handleDelete = async (id) => {
+    if (!canDelete) return alert("Sem permissão para excluir.");
     if (window.confirm('Tem a certeza que deseja excluir este cliente?')) {
       try {
         await deleteDoc(doc(db, 'clients', id));
@@ -71,7 +79,7 @@ const ClientesPage = () => {
       }
     }
   };
-  
+
   // Lógica de processamento e filtragem
   const processedAndFilteredClients = useMemo(() => {
     const processedClients = clients.map(client => {
@@ -81,14 +89,19 @@ const ClientesPage = () => {
     });
 
     return processedClients.filter(client => {
-      const matchesSearch = searchTerm === '' ||
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (client.phone && client.phone.includes(searchTerm));
+      const searchLower = searchTerm.toLowerCase();
+      const normalizedTerm = searchTerm.replace(/[.\-/]/g, '');
+      const normalizedCpf = client.cpf ? client.cpf.replace(/[.\-/]/g, '') : '';
 
-      const matchesFilter = activeFilter === 'todos' || 
+      const matchesSearch = searchTerm === '' ||
+        client.name.toLowerCase().includes(searchLower) ||
+        client.email?.toLowerCase().includes(searchLower) ||
+        (client.phone && client.phone.includes(searchTerm)) ||
+        (normalizedCpf && normalizedCpf.includes(normalizedTerm));
+
+      const matchesFilter = activeFilter === 'todos' ||
         client.status.toLowerCase() === activeFilter;
-      
+
       return matchesSearch && matchesFilter;
     });
   }, [clients, orders, searchTerm, activeFilter]);
@@ -99,10 +112,13 @@ const ClientesPage = () => {
     <>
       <div className="page-header">
         <h2 className="dashboard-title">Clientes</h2>
-        <Link to="/clientes/novo" className="action-button">
-          <FiPlusCircle size={20} />
-          Adicionar Cliente
-        </Link>
+        {/* Mostra botão Adicionar apenas se tiver permissão */}
+        {canAdd && (
+          <Link to="/clientes/novo" className="action-button">
+            <FiPlusCircle size={20} />
+            Adicionar Cliente
+          </Link>
+        )}
       </div>
 
       {/* Painel de Filtragem */}
@@ -111,7 +127,7 @@ const ClientesPage = () => {
           <FiSearch className="search-icon" />
           <input
             type="text"
-            placeholder="Pesquisar por nome, email ou telefone..."
+            placeholder="Pesquisar por nome, email, telefone ou CPF..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -135,7 +151,8 @@ const ClientesPage = () => {
                 <th>Email</th>
                 <th>Telefone</th>
                 <th>Status</th>
-                <th>Ações</th>
+                {/* Mostra coluna Ações apenas se puder Editar OU Excluir */}
+                {(canEdit || canDelete) && <th>Ações</th>}
               </tr>
             </thead>
             <tbody>
@@ -146,18 +163,27 @@ const ClientesPage = () => {
                     <td>{client.email}</td>
                     <td>{client.phone || 'N/A'}</td>
                     <td><ClientStatusBadge status={client.status} /></td>
-                    <td className="actions-cell">
-                      {/* CORREÇÃO: Envolve o botão de edição com um Link */}
-                      <Link to={`/clientes/editar/${client.id}`}>
-                        <button title="Editar"><FiEdit size={18} /></button>
-                      </Link>
-                      <button title="Excluir" onClick={() => handleDelete(client.id)}><FiTrash2 size={18} /></button>
-                    </td>
+                    {/* Renderiza célula de Ações apenas se houver permissão */}
+                    {(canEdit || canDelete) && (
+                      <td className="actions-cell">
+                        {/* Mostra botão Editar se tiver permissão */}
+                        {canEdit && (
+                          <Link to={`/clientes/editar/${client.id}`}>
+                            <button title="Editar"><FiEdit size={18} /></button>
+                          </Link>
+                        )}
+                        {/* Mostra botão Excluir se tiver permissão */}
+                        {canDelete && (
+                          <button title="Excluir" onClick={() => handleDelete(client.id)}><FiTrash2 size={18} /></button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
+                  {/* Ajusta colSpan dinamicamente */}
+                  <td colSpan={(canEdit || canDelete) ? 5 : 4} style={{ textAlign: 'center', padding: '40px' }}>
                     Nenhum cliente encontrado com os filtros atuais.
                   </td>
                 </tr>
@@ -171,3 +197,4 @@ const ClientesPage = () => {
 };
 
 export default ClientesPage;
+

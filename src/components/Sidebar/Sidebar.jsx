@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
-import { FiGrid, FiBox, FiTag, FiUsers, FiDollarSign, FiFileText, FiBarChart2, FiLogOut, FiAlertTriangle } from 'react-icons/fi';
+import { FiGrid, FiBox, FiTag, FiUsers, FiDollarSign, FiFileText, FiBarChart2, FiLogOut, FiAlertTriangle, FiUserCheck } from 'react-icons/fi'; // <-- Importe FiUserCheck
 import './Sidebar.css';
 
 const Sidebar = ({ className }) => {
@@ -10,7 +10,7 @@ const Sidebar = ({ className }) => {
   const { settings } = useSettings();
 
   return (
-    <aside 
+    <aside
       className={`sidebar ${className || ''}`}
       style={{
         '--sidebar-bg-color': settings.primaryColor,
@@ -29,6 +29,8 @@ const Sidebar = ({ className }) => {
         <NavLink to="/clientes" className="nav-link"><FiUsers size={20} /><span>Clientes</span></NavLink>
         <NavLink to="/vendas" className="nav-link"><FiDollarSign size={20} /><span>Vendas</span></NavLink>
         <NavLink to="/orcamentos" className="nav-link"><FiFileText size={20} /><span>Orçamentos</span></NavLink>
+        {/* Adicione o novo link para Usuários aqui */}
+        <NavLink to="/usuarios" className="nav-link"><FiUserCheck size={20} /><span>Usuários</span></NavLink>
         <NavLink to="/relatorios" className="nav-link"><FiBarChart2 size={20} /><span>Relatórios</span></NavLink>
       </nav>
       <div className="sidebar-footer">

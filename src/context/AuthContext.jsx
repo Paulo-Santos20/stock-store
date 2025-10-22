@@ -1,35 +1,73 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Estado para saber se a verificação inicial terminou
+  const [currentUserData, setCurrentUserData] = useState(null); // Estado para dados do Firestore (incluindo role)
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // onAuthStateChanged é um listener que observa mudanças no estado de login
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user); // Define o usuário (ou null se deslogado)
-      setLoading(false); // Marca que a verificação terminou
+    let unsubscribeFirestore = () => {}; // Função para parar o listener do Firestore
+
+    // Listener principal para o estado de autenticação do Firebase
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+
+      // Limpa qualquer listener anterior para evitar leaks de memória
+      unsubscribeFirestore(); 
+      setCurrentUserData(null); // Limpa os dados do utilizador anterior ao deslogar
+
+      if (user) {
+        // Se o utilizador está logado, busca os seus dados detalhados do Firestore
+        const userDocRef = doc(db, 'users', user.uid);
+        
+        // Usa onSnapshot para "ouvir" alterações no documento do utilizador em tempo real.
+        // Se a role do utilizador for alterada por um admin, a interface refletirá isso.
+        unsubscribeFirestore = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setCurrentUserData({ id: docSnap.id, ...docSnap.data() });
+          } else {
+            console.warn("Documento do utilizador não encontrado no Firestore para o UID:", user.uid);
+          }
+          // Marca o carregamento como completo apenas após tentar buscar os dados do Firestore
+          if (loading) setLoading(false); 
+        }, (error) => {
+           console.error("Erro ao buscar dados do utilizador:", error);
+           if (loading) setLoading(false); 
+        });
+
+      } else {
+        // Se não há utilizador logado, finaliza o carregamento
+        if (loading) setLoading(false);
+      }
     });
 
-    // Função de limpeza para remover o listener quando o componente desmontar
-    return unsubscribe;
-  }, []);
+    // Função de limpeza que é chamada quando o componente é desmontado
+    return () => {
+        unsubscribeAuth();
+        unsubscribeFirestore();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // O array de dependências vazio garante que este efeito execute apenas uma vez
 
   const logout = () => {
     return signOut(auth);
   };
 
+  // Valor a ser partilhado com todos os componentes da aplicação
   const value = {
-    currentUser,
-    isAuthenticated: !!currentUser, // Converte o objeto do usuário em um booleano
+    currentUser,      // O objeto de autenticação do Firebase (com uid, email, etc.)
+    currentUserData,  // O objeto do Firestore (com name, role, etc.)
+    isAuthenticated: !!currentUser, // Um booleano para verificações rápidas
+    loading,          // Estado de carregamento inicial
     logout,
   };
 
-  // Não renderiza a aplicação até que a verificação inicial do Firebase termine
+  // Não renderiza a aplicação (children) até que a verificação inicial de autenticação termine
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
@@ -37,6 +75,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Hook customizado para facilitar o uso do contexto
 export const useAuth = () => {
   return useContext(AuthContext);
 };
